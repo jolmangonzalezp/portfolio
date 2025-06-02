@@ -1,0 +1,45 @@
+# .github/workflows/deploy.yml
+
+# Nombre del flujo de trabajo que verás en la pestaña "Actions" de GitHub
+name: Deploy Vue App to GitHub Pages
+
+# Define cuándo se ejecutará este flujo de trabajo
+on:
+  # Se ejecutará cada vez que se haga un push a la rama 'main'
+  push:
+    branches:
+      - main # <--- ¡IMPORTANTE! Asegúrate de que esta es tu rama principal (master o main)
+  # Permite ejecutar el flujo de trabajo manualmente desde la pestaña "Actions" de GitHub
+  workflow_dispatch:
+
+# Define los trabajos (jobs) que se ejecutarán
+jobs:
+  build-and-deploy:
+    # El entorno en el que se ejecutará el trabajo (máquina virtual de Ubuntu)
+    runs-on: ubuntu-latest
+
+    # Pasos que se ejecutarán en este trabajo
+    steps:
+    - name: ⬇️ Checkout Repository # Paso 1: Baja tu código del repositorio
+      uses: actions/checkout@v4 # Usa la acción oficial de GitHub para checkout
+
+    - name: 🛠️ Set up Node.js # Paso 2: Configura el entorno de Node.js
+      uses: actions/setup-node@v4 # Usa la acción oficial para configurar Node
+      with:
+        node-version: '20' # <--- Puedes cambiar la versión de Node.js si tu proyecto lo requiere (ej. '18', '16')
+        cache: 'npm' # Habilita la caché de npm para instalaciones más rápidas
+
+    - name: 📦 Install Dependencies # Paso 3: Instala las dependencias del proyecto
+      run: npm install # Ejecuta el comando para instalar dependencias (o 'yarn install' si usas yarn)
+
+    - name: ⚙️ Build Project # Paso 4: Compila tu aplicación Vue para producción
+      run: npm run build # Ejecuta el script 'build' definido en tu package.json (o 'yarn build')
+
+    - name: 🚀 Deploy to GitHub Pages # Paso 5: Despliega la carpeta 'dist' a GitHub Pages
+      # Usa la acción 'peaceiris/actions-gh-pages' para desplegar
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }} # Token automático proporcionado por GitHub
+        publish_dir: ./dist # <--- ¡IMPORTANTE! La carpeta que contiene tus archivos compilados (por defecto 'dist')
+        publish_branch: gh-pages # <--- La rama donde se desplegará el sitio (se creará si no existe)
+        # cname: yourcustomdomain.com # Descomenta y edita si usas un dominio personalizado
